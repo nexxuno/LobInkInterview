@@ -1,0 +1,33 @@
+version: '3.4'
+
+services:
+  lobinkinterview:
+    image: ${DOCKER_REGISTRY-}lobinkinterview
+    build:
+      context: .
+      dockerfile: LobInkInterview/Dockerfile
+    environment:
+          MongoDB__Host: my-mongo
+    depends_on:
+      - my-mongo
+
+  my-mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: lobsterdb
+      MONGO_INITDB_ROOT_PASSWORD: lobsterdbpwd
+    ports:
+      - 27017:27017
+
+  my-mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: lobsterdb
+      ME_CONFIG_MONGODB_ADMINPASSWORD: lobsterdbpwd
+      ME_CONFIG_MONGODB_URL: mongodb://lobsterdb:lobsterdbpwd@my-mongo:27017/
+    depends_on:
+      - my-mongo 
