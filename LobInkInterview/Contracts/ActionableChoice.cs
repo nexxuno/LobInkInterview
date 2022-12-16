@@ -4,8 +4,7 @@ namespace LobInkInterview.Contracts
 {
     public class ActionableChoice : ChoiceBase<ActionableChoice>, IValidatableObject
     {
-        [Required]
-        public bool Selected { get; set; }
+        public bool Selected { get; set; } = false;
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

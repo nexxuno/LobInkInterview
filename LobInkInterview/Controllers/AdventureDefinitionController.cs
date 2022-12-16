@@ -3,6 +3,7 @@ using LobInkInterview.DataAccess.Interfaces;
 using LobInkInterview.DataAccess.Models;
 using LobInkInterview.Services.Interfaces;
 using Mapster;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
@@ -37,11 +38,11 @@ namespace LobInkInterview.Controllers
 
         // GET api/<AdventureDefinitionController>/5
         [HttpGet("{id}")]
-        public async Task<AdventureDefinitionResponse> Get(Guid id)
+        public async Task<Results<Ok<AdventureDefinitionResponse>, NotFound>> Get(Guid id)
         {
             var foundAdventure = await adventureDefinitionsRepository.GetAsync(id);
             var responseObject = foundAdventure.Adapt<AdventureDefinitionResponse>();
-            return responseObject;
+            return responseObject != null ? TypedResults.Ok(responseObject) : TypedResults.NotFound();
         }
 
         // POST api/<AdventureDefinitionController>
@@ -58,14 +59,20 @@ namespace LobInkInterview.Controllers
 
         // PUT api/<AdventureDefinitionController>/5
         [HttpPut("{id}")]
-        public async Task<AdventureDefinitionResponse> Put(Guid id, [FromBody] AdventureDefinitionRequest adventureDefinition)
+        public async Task<Results<Ok<AdventureDefinitionResponse>, NotFound>> Put(Guid id, [FromBody] AdventureDefinitionRequest adventureDefinition)
         {
             var storageObject = adventureDefinition.Adapt<AdventureDefinitionDAL>();
             storageObject.Id = id;
             storageObject.Signature = signatureHandler.CreateSignature(adventureDefinition);
-            await adventureDefinitionsRepository.UpdateAsync(storageObject);//TODO check true
-            var responseObject = storageObject.Adapt<AdventureDefinitionResponse>();
-            return responseObject;
+            var objectFound = await adventureDefinitionsRepository.UpdateAsync(storageObject);
+            if(objectFound)
+            {
+                return TypedResults.Ok(storageObject.Adapt<AdventureDefinitionResponse>());
+            }
+            else
+            {
+                return TypedResults.NotFound();
+            }
         }
 
         // DELETE api/<AdventureDefinitionController>/5

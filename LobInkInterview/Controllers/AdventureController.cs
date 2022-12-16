@@ -1,10 +1,12 @@
 ﻿using LobInkInterview.Contracts;
+using LobInkInterview.Controllers.Helpers;
 using LobInkInterview.DataAccess.Interfaces;
 using LobInkInterview.DataAccess.Models;
 using LobInkInterview.DataAccess.Repositories;
 using LobInkInterview.Services;
 using LobInkInterview.Services.Interfaces;
 using Mapster;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -40,37 +42,45 @@ namespace LobInkInterview.Controllers
 
         // GET api/<AdventureController>/5
         [HttpGet("{id}")]
-        public async Task<AdventureResponse> Get(Guid id)
+        public async Task<Results<Ok<AdventureResponse>, NotFound>> Get(Guid id)
         {
             var foundAdventure = await adventuresRepository.GetAsync(id);
             var responseObject = foundAdventure.Adapt<AdventureResponse>();
-            return responseObject;
+            return responseObject != null ? TypedResults.Ok(responseObject) : TypedResults.NotFound();
         }
 
         // POST api/<AdventureController>
         [HttpPost]
-        public async Task<AdventureResponse> Post([FromBody] AdventureRequest adventure)
+        public async Task<Results<Ok<AdventureResponse>, BadRequest<string>>> Post([FromBody] AdventureRequest adventure)
         {
             if (!signatureHandler.CheckSignature(adventure.Adapt<AdventureDefinitionRequest>(), adventure.Signature))
-                throw new Exception("TODO!");
+                return ControllerResults.InvalidSignature;
 
             var storageObject = adventure.Adapt<AdventureDAL>();
             storageObject.Id = Guid.NewGuid();
             await adventuresRepository.CreateAsync(storageObject);
             var responseObject = storageObject.Adapt<AdventureResponse>();
-            return responseObject;
+            return TypedResults.Ok(responseObject);
         }
 
         // PUT api/<AdventureController>/5
         [HttpPut("{id}")]
-        public async Task Put(Guid id, [FromBody] AdventureRequest adventure)
+        public async Task<Results<Ok, NotFound, BadRequest<string>>> Put(Guid id, [FromBody] AdventureRequest adventure)
         {
             if (!signatureHandler.CheckSignature(adventure.Adapt<AdventureDefinitionRequest>(), adventure.Signature))
-                throw new Exception("TODO!");
+                return ControllerResults.InvalidSignature;
 
             var storageObject = adventure.Adapt<AdventureDAL>();
             storageObject.Id = id;
-            await adventuresRepository.UpdateAsync(storageObject);//TODO check true
+            var objectFound = await adventuresRepository.UpdateAsync(storageObject);
+            if (objectFound)
+            {
+                return TypedResults.Ok();
+            }
+            else
+            {
+                return TypedResults.NotFound();
+            }
         }
 
         // DELETE api/<AdventureController>/5

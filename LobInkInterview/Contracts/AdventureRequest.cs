@@ -10,6 +10,7 @@ namespace LobInkInterview.Contracts
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             //given more time we could do better and check that there is only one path taking to a leaf and everything else has selected = false
+            //another check that we could implement is something on the total size of the tree
             if (Choices.Count(choice => choice.Selected == true) > 1)
             {
                 yield return new ValidationResult(

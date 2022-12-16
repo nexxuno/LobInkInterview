@@ -2,11 +2,11 @@
 {
     public class MongoDBConfig
     {
-        public string Database { get; set; }
-        public string Host { get; set; }
-        public int Port { get; set; }
-        public string User { get; set; }
-        public string Password { get; set; }
+        public string Database { get; set; } = string.Empty;
+        public string Host { get; set; } = string.Empty;
+        public int Port { get; set; } = -1;
+        public string User { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
         public string ConnectionString
         {
             get
